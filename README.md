@@ -37,3 +37,58 @@ This pattern navigates to the `subtasks` array within `fields`, uses `[]` to ite
 ---
 
 ## Exercise #2
+The updated Jira Integration Mapping which used the Component(s) name to map Jira Issue to GitHub Repository is shown below:
+```yaml
+resources:
+#   - kind: user ...
+#   - kind: project ...
+  - kind: issue
+    selector:
+      query: 'true'
+      jql: (statusCategory != Done) OR (created >= -1w) OR (updated >= -1w)
+    port:
+      entity:
+        mappings:
+          identifier: .key
+          title: .fields.summary
+          blueprint: '"jiraIssue"'
+          properties:
+            url: (.self | split("/") | .[:3] | join("/")) + "/browse/" + .key
+            status: .fields.status.name
+            issueType: .fields.issuetype.name
+            components: .fields.components
+            creator: .fields.creator.emailAddress
+            priority: .fields.priority.name
+            labels: .fields.labels
+            created: .fields.created
+            updated: .fields.updated
+            resolutionDate: .fields.resolutiondate
+          relations:
+            project: .fields.project.key
+            parentIssue: .fields.parent.key
+            subtasks: .fields.subtasks | map(.key)
+            jira_user_assignee: .fields.assignee.accountId
+            jira_user_reporter: .fields.reporter.accountId
+            assignee:
+              combinator: '"or"'
+              rules:
+                - property: '"jira_user_id"'
+                  operator: '"="'
+                  value: .fields.assignee.accountId // ""
+                - property: '"$identifier"'
+                  operator: '"="'
+                  value: .fields.assignee.email // ""
+            reporter:
+              combinator: '"or"'
+              rules:
+                - property: '"jira_user_id"'
+                  operator: '"="'
+                  value: .fields.reporter.accountId // ""
+                - property: '"$identifier"'
+                  operator: '"="'
+                  value: .fields.reporter.email // ""
+            repository: .fields.components | map(.name)
+```
+
+In the `issue` resource kind above, i added a `repository` identifier under the `relations` field (i.e `.port.entity.mappings.relations`) and equated it to `.fields.components | map(.name)`.
+What this does is to extract the component names from the Jira issue component(s) array and returns them as a simple list. We could have also made use of the patter `.fields.components[].name` as they prodoce the same result.
