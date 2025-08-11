@@ -1,0 +1,57 @@
+name: Deploy with Inputs
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+          - development
+      port_context:
+        description: 'Port context information'
+        required: false
+        type: string
+        default: ''
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Display inputs
+      run: |
+        echo "🎯 Environment: ${{ inputs.environment }}"
+        echo "🔌 Port Context: ${{ inputs.port_context }}"
+        
+    - name: Deploy to environment
+      run: |
+        echo "🚀 Deploying to ${{ inputs.environment }}..."
+        
+        if [ "${{ inputs.environment }}" = "production" ]; then
+          echo "⚠️  Production deployment - extra safety checks"
+          sleep 2
+        fi
+        
+        echo "✅ Deployment to ${{ inputs.environment }} completed"
+        
+    - name: Use port context
+      if: inputs.port_context != ''
+      run: |
+        echo "📋 Processing Port context..."
+        echo "Context data: ${{ inputs.port_context }}"
+        
+    - name: Notify completion
+      run: |
+        echo "🎉 Workflow completed successfully!"
+        echo "Environment: ${{ inputs.environment }}"
+        echo "Port Context: ${{ inputs.port_context || 'Not provided' }}"
