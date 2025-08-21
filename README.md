@@ -245,8 +245,11 @@ With this property holding the number of Open PRs, I then used the following JSO
   ]
 }
 ```
-I experimented by opening five(5) PRs on this repository [a-star repo](https://github.com/edwardoboh/a-star).
+I experimented by opening five(5) PRs on this repository [a-star repo](https://github.com/edwardoboh/a-star)
 ![self-service action](assets/screenshot-2025-08-11-22-10-21.png)
+
+And twelve(12) PRs on this repository [mono-bank-availability repo](https://github.com/edwardoboh/mono-bank-availability)
+![self-service action](assets/screenshot-2025-08-21-23-53-47.png)
 
 <br />
 
