@@ -11,55 +11,80 @@
 ### 1. JQ patterns that will extract the following information:
 
 #### a. The current replica count:
-> Pattern:
->```bash
->.status.replicas
->```
+<!-- > Pattern: -->
+```bash
+.status.replicas
+```
 
-While we could also get the same information from the `.spec.replicas` field, the `.status.replicas` field represents the actual number of replicas that currently exist in the cluster, regardless of their readiness state. This is the most accurate representation of the "current replica count" as requested in your question.
+i.  The `.status` field in the pattern navigates to the status object and then, <br >
+ii. The `.replicas` field extracts the current replica count property, representing the actual number of replicas that currently exist in the cluster.
+<!-- > While we could also get the same information from the `.spec.replicas` field, the `.status.replicas` pattern represents the actual number of replicas that currently exist in the cluster, regardless of their readiness state. This is the most accurate representation of the "current replica count" as requested in your question. -->
 
 #### b. The deployment strategy:
->Pattern:
->```bash
->.spec.strategy.type
->```
-
-The command above returns the deployment strategy type, which is `RollingUpdate` for the input JSON object.
-To get the full object of the deployment, we would use the pattern: 
-> `.spec.strategy`
+<!-- >Pattern: -->
+```bash
+.spec.strategy.type
+```
+i.    The `.spec` field in the pattern navigates to the specification object, <br >
+ii.   The `.strategy` field then accesses the strategy configuration under the spec object, after which <br >
+iii. The `.type` field then extracts the deployment strategy type (`RollingUpdate` for this deployment).
+> To get the full strategy object, use `.spec.strategy`.
 
 #### c. The “service” and “environment” label of the deployment concatenated with a hyphen (-) in the middle:
->Pattern:
->```bash
->.metadata.labels.service + "-" + .metadata.labels.environment
->```
+<!-- >Pattern: -->
+```bash
+.metadata.labels.service + "-" + .metadata.labels.environment
+```
+i.    The `.metadata` field in the pattern  navigates to the metadata object, <br >
+ii.   Then, `.labels` accesses the labels object,  <br >
+iii.  Then `.service` and `.environment` extract the respective label values. <br >
+iv.   The `+` operator concatenates these strings with a hyphen (`-`) in between. <br >
 
 ### 2. Extract all issue IDs for all subtasks, into an array:
->Pattern:
->```bash
->[.fields.subtasks[].key]
->```
-This pattern navigates to the `subtasks` array within `fields`, uses `[]` to iterate through each subtask object, and extracts the `key` field containing the issue ID. Adding the `[...]` brackets collects all results into a single array.
+<!-- >Pattern: -->
+```bash
+[.fields.subtasks[].key]
+```
+i.    The pattern `.fields` accesses the fields object, <br >
+ii.   Then `.subtasks` accesses the subtasks array field. <br >
+iii.  The `[]` operator iterates through each element in the subtasks array, and <br >
+iv.   The `.key` field in the pattern extracts the key field from each subtask object. <br >
+v.    The outer `[...]` brackets collect all the extracted keys into a single array, rather than outputting them as separate values.
 
 
 ## Exercise #2
-After installing Port’s GitHub app which creates the Repository blueprint
+**A.** After installing Port’s GitHub app which creates the Repository blueprint
 ![self-service action](assets/screenshot-2025-08-11-21-18-00.png)
 
 <br />
 
-I proceeded to install Port's Ocean integration for Jira, using the `Scheduled - GitHub Workflow` option. With the instructions displayed on the modal, i was able to set up the repository secrets and the GitHub workflow.
+**B.** I proceeded to install Port's Ocean integration for Jira, using the `Scheduled - GitHub Workflow` option. With the instructions displayed on the modal, i was able to set up the repository secrets and the GitHub workflow.
 ![Port Ocean Jira](assets/screenshot-2025-08-11-23-03-08.png)
 
 <br />
 
-I then created a Jira issue configured with Jira components whose names exactly match the GitHub repositories we want to link. Since a single Jira issue can include multiple components, I decided to link two components to the Issue.
+Below is a screenshot showing the GitHub workflow used in to install the Jira Integration
+![self-service action](assets/screenshot-2025-08-21-16-11-14.png)
+
+<br />
+
+After successfully integrating Jira and GitHub, we can now see both integrations in Data sources page in Port, under the Exporters category.
+![self-service action](assets/screenshot-2025-08-21-16-47-09.png)
+
+<br />
+
+**C.** I then created a Jira issue configured with Jira components whose names exactly match the GitHub repositories we want to link. Since a single Jira issue can include multiple components, I decided to link two components to the Issue.
 ![Jira Issue](assets/screenshot-2025-08-11-20-24-56.png)
 > The instructions were very helpful in setting up my free Jira account  
 
 <br />
 
-I then updated the Jira integration mapping so that each component on an issue is used as the join key to the corresponding Repository entity:
+Also, below is a screenshot showing the created components, matching my GitHub repositories.
+![self-service action](assets/screenshot-2025-08-21-16-23-58.png)
+
+<br />
+
+**D.** I then updated the Jira integration mapping so that each component on an issue is used as the join key to the corresponding Repository entity:
 ```yaml
 resources:
 #   - kind: user ...
@@ -103,6 +128,13 @@ resources:
 ```
 In the `issue` resource kind above, i added a `repository` identifier under the `relations` field (i.e `.port.entity.mappings.relations`) and equated it to `.fields.components | map(.name)`.
 > What this does is to extract the component names from the Jira issue component(s) array and returns them as a simple list. We could have also made use of the patter `[.fields.components[].name]` as they produce the same result.
+
+<br />
+
+Below is a screenshot showing the output from the Jira Integration mapping modal after running a test on the updated mapping
+
+![self-service action](assets/screenshot-2025-08-21-16-39-54.png)
+![self-service action](assets/screenshot-2025-08-21-16-43-40.png)
 
 <br />
 
@@ -220,6 +252,9 @@ I experimented by opening five(5) PRs on this repository [a-star repo](https://g
 
 After re-syncing we can now see the Scoreboard with the proper badges. See image below:
 ![self-service action](assets/screenshot-2025-08-11-21-37-20.png)
+
+See Result for all repositories below
+![self-service action](assets/screenshot-2025-08-21-16-54-59.png)
 
 
 ## Exercise #4
